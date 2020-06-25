@@ -2,6 +2,13 @@
 
 #install packages
 using Pkg
+# install the next few packages first
+Pkg.add("TrajectoryOptimization")
+Pkg.add("DifferentialEquations")
+Pkg.add("SatelliteToolbox")
+Pkg.add("ForwardDiff")
+Pkg.add("SparseArrays")
+Pkg.add("Interpolations")
 using LinearAlgebra
 using Plots
 using TrajectoryOptimization
