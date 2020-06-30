@@ -1,4 +1,4 @@
-function OrbitPlotter(x,p,t)
+function OrbitPlotter(dx, x,p,t)
 #this function plots an orbit of a satellite to get the position over a time period
 r = x[1:3] #km
 v = x[4:6] #km/s
@@ -44,8 +44,9 @@ f_J2=[J2*r[1]/norm(r)^7*(6*r[3]-1.5*(r[1]^2+r[2]^2))
 
 #acceleration
 a=(f_grav+f_J2); #km/s^2
+dx = [v;a]
 
-return [v;a]
+#return [v;a]
 #print(omega);
 
 

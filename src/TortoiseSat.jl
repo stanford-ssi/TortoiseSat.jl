@@ -1,18 +1,13 @@
 #this code is for trajectory optimization of an underactuated satellite
 
 #install packages
+println("importing packages...")
 using Pkg
-# install the next few packages first
-Pkg.add("TrajectoryOptimization")
-Pkg.add("DifferentialEquations")
-Pkg.add("SatelliteToolbox")
-Pkg.add("ForwardDiff")
-Pkg.add("SparseArrays")
-Pkg.add("Interpolations")
 using LinearAlgebra
 using Plots
 using TrajectoryOptimization
 using DifferentialEquations
+println("imported half of the packages")
 using SatelliteToolbox
 using ForwardDiff
 using SparseArrays
@@ -21,19 +16,23 @@ using Interpolations
 # using IGRF
 # using ApproxFun
 
+println("imported all packages")
+
 
 #declare functions 
-include("src/kep_ECI.jl")
-include("src/NED_cart.jl")
-include("src/DerivFunction.jl")
-include("src/OrbitPlotter.jl")
-include("src/simulator.jl")
-include("src/gain_simulator.jl")
-include("src/quaternion_toolbox.jl")
-include("src/magnetic_toolbox.jl")
-include("src/input_parameters.jl")
-include("src/eigen_axis_slew.jl")
-include("src/attitude_controller.jl")
+include("kep_ECI.jl")
+include("NED_cart.jl")
+include("DerivFunction.jl")
+include("OrbitPlotter.jl")
+include("simulator.jl")
+include("gain_simulator.jl")
+include("quaternion_toolbox.jl")
+include("magnetic_toolbox.jl")
+include("input_parameters.jl")
+include("eigen_axis_slew.jl")
+include("attitude_controller.jl")
+
+println("imported all local functions")
 
 R_E = 6178 #km
 
@@ -63,15 +62,24 @@ p = input_parameters("1P",Kep,MJD)
 
 ## magnetic field generation for half orbit
 t0 = 0.0 #seconds
-tf = 60*90 #seconds
+#tf = 60*960 #seconds
+tf = 60*90 # seconds
 cutoff = 50 #condition number cutoff
+#N = 10000
 N = 5000
 
 #extrapolate over the magnetic field
 mag_field = igrf_data(p.alt,2019)
+println("magnetic simulation call #1")
+println("p: ", p)
+println("t0: ", t0)
+println("tf: ", tf)
+println("N: ", N)
 B_ECI_initial,a,b = magnetic_simulation(p,t0,tf,N,mag_field)
 
 #plot magnetic field
+using Serialization
+serialize("B_ECI_initial", B_ECI_initial)
 plot(B_ECI_initial)
 
 # Now, since we have the magnetic field for half an orbit, we calculate the gramian
@@ -86,6 +94,7 @@ tf_index = condition_based_time(B_gram,cutoff)
 # magnetic field along that orbit in much higher detail for our solver 
 
 #reasign time
+println("tf_index: ", tf_index)
 t_final = tf_index*(tf-t0)/N
 
 dt = .2 #we want around 5 Hz
@@ -93,6 +102,11 @@ N = convert(Int64,floor((t_final-t0)/dt))
 t = t0:dt:t_final
 
 # find magnetic field along new simulation 
+println("magnetic simulation call #2")
+println("p: ", p)
+println("t0: ", t0)
+println("t_final: ", t_final)
+println("N: ", N)
 B_ECI,pos,vel = magnetic_simulation(p,t0,t_final,N,mag_field)
 
 #plot magnetic field

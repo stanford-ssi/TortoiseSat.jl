@@ -22,6 +22,10 @@ function condition_based_time(B_gram,cutoff)
     end #generate condition number of the gramian
     tf_index = 0
     for i = 1:size(B_gram_cond,2)
+        if i % 1000 == 0
+            println("i: ", i)
+            println("B_gram_cond[i]: ", B_gram_cond[i])
+        end
         if (B_gram_cond[i]) < cutoff
             tf_index = i
             break
@@ -49,9 +53,16 @@ function magnetic_simulation(p,t0,tf,N,mag_field)
 
     # find magnetic field along 1 orbit
     tspan=(t0,tf*2) #go a little over for the ForwardDiff downstream
-    prob=DiffEqBase.ODEProblem(OrbitPlotter,u0,tspan,p = p)
+    println("PROBLEM PARAMETERS")
+    println("u0: ", u0)
+    println("tspan: ", tspan)
+    println("p: ", p)
+    prob=DiffEqBase.ODEProblem(OrbitPlotter,u0,tspan,p)
     dt = (tf-t0)/N
+    println("Defined problem... now solving with these parameters")
+    println("dt: ", dt)
     sol=DiffEqBase.solve(prob, dt = dt ,adaptive=false,Euler())
+    println("Solved problem")
     pos=sol[1:3,:]
     vel=sol[4:6,:]
 
@@ -115,8 +126,16 @@ function igrf_data(altitude,year::Int64)
     long = collect(range(-π,length = N,π))
     for i = 1:size(mag_field,1)
         for j = 1:size(mag_field,2)
-            mag_field[i,j,:] =
-                SatelliteToolbox.igrf12(year,(altitude+R_E)*1000,lat[i],long[j])/1.e9
+            try
+                mag_field[i,j,:] =
+                    SatelliteToolbox.igrf(year,(altitude+R_E)*1000,lat[i],long[j])/1.e9
+            catch e
+                println(e)
+                println(year)
+                println(altitude+R_E)
+                println(lat[i])
+                println(long[j])
+            end
         end
     end
 
